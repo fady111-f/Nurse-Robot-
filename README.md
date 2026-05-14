@@ -77,6 +77,35 @@ This project strictly avoids abstraction layers (like STM32 HAL or CMSIS C-heade
     * `Distance 85-100cm` OR `155-170cm`: Room Detected. Engage Brakes -> Execute Robotic Arm Delivery Sequence -> Resume.
     * `Distance < 30cm`: Emergency Brake.
 
+
+## 📌 Workload Distribution
+
+- **Fady Fawzy**  
+  System Design, Architecture & Temperature Sensor
+
+- **Eissa Hozayen & Ayman Alaa**  
+  Motion System
+
+- **Kamel**  
+  MAX Module & Velostat Integration
+
+- **Jody Ali**  
+  Bluetooth Module & Velostat
+
+- **Youssef Safwat**  
+  ARM Control & Distribution Mode
+
+- **Mohamed Ahmed**  
+  ARM Control & Distribution Mode
+
+- **Kyrillos Sameh**  
+  RFID System
+
+- **Fady Ashraf & Omar Youssef**  
+  Code Integration, System Linking & Display Interface
+
+
+  
 ---
 ## 👨‍💻 Developed by: MED-E  
 *Computer Engineering | Cairo University*  
