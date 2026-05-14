@@ -87,7 +87,7 @@ This project strictly avoids abstraction layers (like STM32 HAL or CMSIS C-heade
   Motion System
 
 - **Kirellous Kamel**  
-  MAX Module & Velostat Integration
+  MAX Module & Velostat 
 
 - **Jody Ali**  
   Bluetooth Module & Velostat
