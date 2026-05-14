@@ -80,29 +80,35 @@ This project strictly avoids abstraction layers (like STM32 HAL or CMSIS C-heade
 
 ## 📌 Workload Distribution
 
-- **Fady Fawzy**  
-  System Design, Architecture & Temperature Sensor
+> This project was accomplished through the hard work of the entire team.  
+> We all contributed to every part of the project — brainstorming, developing, and staying up late together.  
+> The following distribution represents the primary contributions of each team member.
 
-- **Eissa Hozayen & Ayman Alaa**  
-  Motion System
+### 🛠️ Mechanical Design & Structure
+- **Fady Fawzy , Ayman Alaa** — Design and implementation of the physical robot structure
 
-- **Kirellous Kamel**  
-  MAX Module & Velostat 
+### 💻 Software & System Integration
+- **Omar Youssef & Fady Ashraf** — Main loop , code integration and Sensor History
+- **Fady Fawzy, Omar Youssef & Fady Ashraf** — Screen and menu system
+  
 
-- **Jody Ali**  
-  Bluetooth Module & Velostat
+### 🌡️ Sensors & Hardware Modules
+- **Fady Ashraf** — Temperature sensor  
+- **Kirellous Kamel , Kirellous Sameh , Ayman Alaa , Jody Ali , Mohammed Ahmed** — MAX module  
+- **Kirellous Kamel & Jody Ali** — Velostat  
+- **Omar Youssef** — IR remote  
+- **Kirellous Kamel & Ayman Alaa** — Bluetooth module  
+- **Yousuf Safwat, Eissa Ali & Kirellous Sameh** — RFID system
 
-- **Youssef Safwat**  
-  ARM Control & Distribution Mode
+### 🤖 Control & Logic
+- **Yousuf Safwat & Mohammad Ahmed** — ARM control  
+- **Kirellous Kamel & Fady Ashraf** — Item distribution logic  
+- **Eissa Hozayen & Yousuf Safwat** — Motion system  
+- **Kirellous Kamel, Fady Ashraf, Omar Youssef & Fady Fawzy** — Drop rate system
 
-- **Mohamed Ahmed**  
-  ARM Control & Distribution Mode
+### 📱 Application Development
+- **Fady Fawzy & Jody Ali** — Mobile application
 
-- **Kirellous Sameh**  
-  RFID System
-
-- **Fady Ashraf & Omar Youssef**  
-  Code Integration, System Linking & Display Interface
 
 
   
