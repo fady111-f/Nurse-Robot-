@@ -86,7 +86,7 @@ This project strictly avoids abstraction layers (like STM32 HAL or CMSIS C-heade
 - **Eissa Hozayen & Ayman Alaa**  
   Motion System
 
-- **Kamel**  
+- **Kirellous Kamel**  
   MAX Module & Velostat Integration
 
 - **Jody Ali**  
@@ -98,7 +98,7 @@ This project strictly avoids abstraction layers (like STM32 HAL or CMSIS C-heade
 - **Mohamed Ahmed**  
   ARM Control & Distribution Mode
 
-- **Kyrillos Sameh**  
+- **Kirellous Sameh**  
   RFID System
 
 - **Fady Ashraf & Omar Youssef**  
