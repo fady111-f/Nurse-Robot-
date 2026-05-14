@@ -78,5 +78,5 @@ This project strictly avoids abstraction layers (like STM32 HAL or CMSIS C-heade
     * `Distance < 30cm`: Emergency Brake.
 
 ---
-**👨‍💻 Developed by:** Fady Fawzy  
+**👨‍💻 Developed by:** MED-E 
 *Computer Engineering | Cairo University* *Microprocessors & Embedded Systems Project*
