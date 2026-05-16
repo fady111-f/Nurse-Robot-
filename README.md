@@ -18,7 +18,7 @@ A comprehensive, fully autonomous medical assistant robot designed to navigate h
     * **Wireless Telemetry:** HC-05 Bluetooth module over USART transmits live patient vitals and drop rates to remote nursing stations.
 * **🖥️ Custom TFT Smart Dashboard:** An entirely custom SPI display driver featuring a multi-state UI menu system, dynamic history rendering, and real-time vital sign tracking.
 
-## 🧰  Hardware Architecture
+## 🧰 Hardware Architecture
 
 The system orchestrates a wide array of peripherals through direct memory-mapped register configuration:
 
