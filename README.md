@@ -125,6 +125,6 @@ This project strictly avoids abstraction layers (like STM32 HAL or CMSIS C-heade
 - kokokamel130@gmail.com  
 - sameh.wagih331@gmail.com  
 - yousuf.gabr06@eng-st.cu.edu.eg  
-- aymanalaa3g@gmail.com  
+- ayman.taher05@eng-st.cu.edu.eg  
 - omaryoussefsaid12@gmail.com  
 - mohamed.ahmed0411@eng-st.cu.edu.eg
