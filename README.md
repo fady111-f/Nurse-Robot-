@@ -13,7 +13,7 @@
 
 <br/>
 
-> **A comprehensive, fully autonomous medical assistant robot designed to navigate hospital corridors, monitor patient vital signs, and deliver medical supplies. This project is built entirely from scratch using Bare-Metal ARM Assembly (No HAL, No external C libraries), demonstrating advanced register-level manipulation of the STM32 microcontroller.**
+> **A comprehensive, fully autonomous medical assistant robot designed to navigate hospital corridors, monitor patient vital signs, and deliver medical supplies. This project is built entirely from scratch using Bare-Metal ARM Assembly (No HAL, No external C libraries), demonstrating register-level control of the STM32 microcontroller.**
 
 ---
 
@@ -56,38 +56,33 @@ graph TD
 
 ---
 
-## 🔌 Hardware Port Map & Registers
+## 🔌 Hardware Port Map & Wiring
 
-The system orchestrates a wide array of specialized electronic modules through direct memory-mapped register configuration. Below is the detailed wiring and pinout scheme:
+The system orchestrates a wide array of specialized electronic modules. Below is the detailed hardware wiring and pinout scheme:
 
-| Peripheral Module | STM32 Pin | GPIO Mode | Register Settings (AHB1/APB1/APB2) | Description |
-| :--- | :--- | :--- | :--- | :--- |
-| **ST7735 TFT Display** | **PA9** (SCK)<br/>**PA10** (MOSI) | Output (High Speed) | `GPIOA_MODER` = Alternate Output (01)<br/>`GPIOA_OSPEEDR` = High Speed (11) | Bit-banged SPI Clock and Data lines for UI rendering. |
-| | **PB12** (CS)<br/>**PB13** (RST)<br/>**PB15** (D/C) | Output (High Speed) | `GPIOB_MODER` = General Output (01)<br/>`GPIOB_OSPEEDR` = High Speed (11) | Display control lines (CS: Active Low, D/C: Low=Cmd / High=Data). |
-| **MAX30102 Oximeter** | **PB8** (SCL)<br/>**PB9** (SDA) | Alternate Function | `GPIOB_MODER` = AF Mode (10)<br/>`GPIOB_OTYPER` = Open-Drain (1)<br/>`GPIOB_AFRH` = AF4 (I2C1)<br/>`I2C1_CCR` = 80 (100kHz)<br/>`I2C1_TRISE` = 17 | I2C1 serial interface with external pull-ups for vitals tracking. |
-| **DS18B20 Temp Sensor**| **PA11** (DQ) | Output (Open-Drain) | `GPIOA_MODER` = Output (01)<br/>`GPIOA_OTYPER` = Open-Drain (1)<br/>`GPIOA_PUPDR` = No Pull | 1-Wire bidirection line. Uses software delays for timings. |
-| **MFRC522 RFID Reader** | **PA8** (CS)<br/>**PA9** (SCK)<br/>**PA10** (MOSI) | Output | `GPIOA_MODER` = Output (01) | Bit-banged SPI Master for card reading. |
-| | **PB14** (MISO) | Input | `GPIOB_MODER` = Input (00) | SPI Slave-Out line. |
-| **HC-SR04 Ultrasonic** | **PB10** (Trigger) | Output | `GPIOB_MODER` = Output (01) | Generates a 10us start ping. |
-| | **PB2** (Echo) | Input | `GPIOB_MODER` = Input (00) | Timer-polled pulse width measurement. |
-| **Velostat Sensor** | **PA0** (Analog) | Analog Input | `GPIOA_MODER` = Analog (11)<br/>`ADC1_SQR3` = Channel 0<br/>`ADC1_CR2` = ADON (1) | ADC1 conversion to measure relative nerve/touch pressure. |
-| **Custom IV Drop Gate** | **PA12** (IR LED) | Output | `GPIOA_MODER` = Output (01) | Powers the IR emitter LED. |
-| | **PB3** (IR Recv) | Input | `GPIOB_MODER` = Input (00) | Detects passing drops (falls to LOW). |
-| | **PB4** (Indicator) | Output | `GPIOB_MODER` = Output (01) | Visual/Audible indicator (LED/Buzzer) toggles on drop. |
-| **VS1838B IR Receiver** | **PB5** (IR Data) | Input (EXTI5) | `SYSCFG_EXTICR2` = Port B<br/>`EXTI_IMR` = Unmasked (1)<br/>`EXTI_FTSR` = Falling Edge (1)<br/>`NVIC_ISER0` = Position 23 (EXTI9_5) | Captures NEC remote control pulses using TIM4. |
-| **HC-05 Bluetooth** | **PB6** (TX)<br/>**PB7** (RX) | Alternate Function | `GPIOB_MODER` = AF Mode (10)<br/>`GPIOB_AFRL` = AF7 (USART1)<br/>`USART1_BRR` = `0x0683` (9600 Baud @ 16MHz)<br/>`USART1_CR1` = UE/TE/RE (1) | Wireless data transmission. |
-| **SG90 Servos (Arm)** | **PA6** (CH1)<br/>**PA7** (CH2)<br/>**PB0** (CH3)<br/>**PB1** (CH4) | Alternate Function | `GPIOA_MODER`/`GPIOB_MODER` = AF Mode (10)<br/>`GPIO_AFRL` = AF2 (TIM3)<br/>`TIM3_PSC` = 15 (1MHz clock)<br/>`TIM3_ARR` = 19999 (20ms/50Hz)<br/>`TIM3_CCMR1/2` = PWM Mode 1 | Four-channel PWM signals to control gripper and joints. |
+| Peripheral Module | STM32 Pin | Interface / Protocol | Purpose |
+| :--- | :--- | :--- | :--- |
+| **ST7735 TFT Display** | **PA9** (SCK)<br/>**PA10** (MOSI)<br/>**PB12** (CS)<br/>**PB13** (RST)<br/>**PB15** (D/C) | SPI (Bit-Bang) | Renders the dashboard UI, charts, and patient data. |
+| **MAX30102 Oximeter** | **PB8** (SCL)<br/>**PB9** (SDA) | I2C | Monitors patient Heart Rate (BPM) and Blood Oxygen (SpO2). |
+| **DS18B20 Temp Sensor**| **PA11** (DQ) | 1-Wire | Measures room/ambient temperature. |
+| **MFRC522 RFID Reader** | **PA8** (CS)<br/>**PA9** (SCK)<br/>**PA10** (MOSI)<br/>**PB14** (MISO) | SPI (Bit-Bang) | Scans patient ID card to load local medical profile. |
+| **HC-SR04 Ultrasonic** | **PB10** (Trigger)<br/>**PB2** (Echo) | GPIO Trigger / Echo | Measures distance for autonomous navigation & braking. |
+| **Velostat Sensor** | **PA0** | Analog (ADC1) | Measures patient bed pressure/nerve touch levels. |
+| **Custom IV Drop Gate** | **PA12** (IR Power)<br/>**PB3** (Sensor)<br/>**PB4** (Indicator) | GPIO Input/Output | Calculates IV fluid drop rate (drops/min) with Buzzer/LED alert. |
+| **VS1838B IR Receiver** | **PB5** | EXTI / TIM4 | Decodes infrared signals from the remote control. |
+| **HC-05 Bluetooth** | **PB6** (TX)<br/>**PB7** (RX) | USART | Transmits wireless telemetry data to the nurse's station. |
+| **SG90 Servos (Arm)** | **PA6** (CH1)<br/>**PA7** (CH2)<br/>**PB0** (CH3)<br/>**PB1** (CH4) | PWM (TIM3) | Controls 4-axis robotic arm for medicine supply delivery. |
 
 ---
 
 ## 🧠 Software Flow & State Machine
 
-The firmware runs a main loop that coordinates dashboard interactions, telemetry polling, and navigation transitions. The following flowchart explains this execution logic:
+The firmware coordinates dashboard interactions, telemetry polling, and navigation transitions. The following flowchart explains this execution logic:
 
 ```mermaid
 stateDiagram-v2
     [*] --> Init : System Reset
-    Init --> MainMenu : Drivers Configured
+    Init --> MainMenu : Peripherals Configured
     
     state MainMenu {
         [*] --> SelectMenu
@@ -119,47 +114,28 @@ stateDiagram-v2
 
 ---
 
-## 🔬 Core Peripheral Implementations & Timing
+## ✨ Key Innovations & Features
 
-Because this is a bare-metal assembly codebase, every protocol transaction is governed by precise register adjustments and fine-tuned delay loops.
+* 💧 **Precision IV Drop Rate Monitor:** A custom-built optical tracking system using IR sensors to calculate real-time IV fluid drop rates (drops/min) with automated **HIGH/LOW/OK** status alerts.
+* 🧠 **Neural Pressure & Stress Sensing:** Integrates a Velostat piezoresistive sensor via ADC to measure patient pressure and stress levels.
+* 🤖 **Autonomous Hospital Navigation:** Features an autonomous mode that uses ultrasonic sensors for corridor navigation. The robot halts at specific room distances and triggers a synchronized robotic arm sequence to deliver items.
+* 🩸 **Real-Time Vitals DSP:** Interfaces with the MAX30102 oximeter to parse raw Red/IR buffers into accurate Heart Rate (BPM) and Blood Oxygen (SpO2) values.
+* 🪪 **Patient Identification System:** Uses an RFID reader to authenticate patients. Scanning a tag dynamically loads the patient's local medical profile (Name, Age, Condition) onto the dashboard.
+* 🖥️ **Custom TFT Smart Dashboard:** An entirely custom SPI display driver featuring a multi-state UI menu system, dynamic history rendering, and real-time vital sign tracking.
 
-### 1. MAX30102 DSP & Vitals Tracking
-The MAX30102 oximeter is polled over I2C1 (PB8/PB9). The algorithm extracts raw samples from the sensor's internal 32-sample FIFO:
-* **Finger Detection:** If the raw IR sensor value exceeds `WAKE_THRESHOLD` (20,000), the sensor is brought to high power to process data. If it falls below `SLEEP_THRESHOLD` (25,000), it halts processing.
-* **Peak Detection:** The assembly code tracks local maxima and minima within a sliding sample window to spot the pulse wave peak.
-* **Heart Rate & SpO2 DSP:** Pulse intervals are scaled into Beats Per Minute (BPM). The ratio of AC to DC components for both Red and Infrared light is computed to determine Blood Oxygen Saturation (SpO2) via:
-  $$R = \frac{(AC_{red} / DC_{red})}{(AC_{ir} / DC_{ir})}$$
-  $$\text{SpO2} = 104 - 17 \times R$$
+---
 
-### 2. DS18B20 1-Wire Timing Logic
-The 1-Wire interface is highly timing-sensitive. The STM32 communicates on PA11 by pulling the bus low and releasing it to let the pull-up resistor pull it high. The code uses software delay loops tuned for a 16 MHz CPU clock:
-* **Reset Pulse:** Pull line LOW for 480 microseconds, release HIGH, wait 60 microseconds for the presence pulse, then wait 420 microseconds to finish the transaction.
-* **Write 0/1 Timeslots:** 
-  * *Write '1':* Pull LOW for 2 microseconds, then release HIGH for 60 microseconds.
-  * *Write '0':* Pull LOW and hold for 60 microseconds, then release.
-* **Read Timeslot:** Pull LOW for 2 microseconds, release, wait 10 microseconds, then sample `GPIOA_IDR` bit 11. Wait 50 microseconds to complete the timeslot.
+## 📱 Wireless Telemetry & App Integration
 
-### 3. Robotic Arm PWM Controller (TIM3)
-To generate the 50 Hz PWM control signals for the four SG90/MG996R servo motors:
-* Clock prescaler `TIM3_PSC` is set to 15, dividing the 16 MHz clock to 1 MHz (1 tick = 1 microsecond).
-* Auto-Reload Register `TIM3_ARR` is loaded with 19,999 to establish a 20,000 microsecond (20 ms) period.
-* Output Compare registers `TIM_CCR1` through `TIM_CCR4` control the pulse width (500us for 0°, 1500us for 90°, and 2500us for 180°). The pre-programmed delivery sequence runs through 8 distinct steps, rotating the base joint, extending the arm, opening the gripper, and returning to a resting position.
+The robot acts as an IoT node communicating with remote nursing stations.
 
-### 4. Custom IV Drop Tracking System
-The optical drop detector uses an IR phototransistor connected to GPIOB Pin 3:
-* **Edge Detection:** The code reads the sensor state and checks it against `Prev_State`. A drop is registered only when the state changes from clear (1) to blocked (0). This prevents a single, slow-falling drop from being counted multiple times.
-* **Sliding Rate Calculator:** A SysTick timer counts 1-second intervals (using `15,999,999` ticks). Every 10 seconds, the rate of drops per minute is updated by scaling the 10-second count:
-  $$\text{Last Rate (drops/min)} = \text{Drops in 10s} \times 6$$
-* **Feedback loop:** Whenever the path is blocked (during a drop), Pin B4 resets, turning off the buzzer/LED. When clear, it sets, creating a visual and audible flash/tick.
+<div align="center">
+  <img src="Images/Bluetooth%20App.jpeg" alt="Bluetooth App Interface" width="250"/>
+  <p><i>Live Mobile Telemetry App developed specifically for this project.</i></p>
+</div>
 
-### 5. VS1838B IR Remote Receiver (NEC Protocol)
-The IR remote decoder uses EXTI Line 5 interrupts triggered by PB5:
-* **Microsecond Counter:** TIM4 runs as a 1 microsecond timer. Each interrupt reads the counter to measure the gap between falling edges and resets it.
-* **NEC Protocol Decoding:** 
-  * A gap of 13.5 ms represents the start pulse.
-  * A gap of 1.125 ms represents Logic 0.
-  * A gap of 2.25 ms represents Logic 1.
-* **Verification:** The 32-bit frame `[Address][~Address][Command][~Command]` is verified by checking that `Command + ~Command == 0xFF` before setting the `ir_flag`.
+* **Local Control:** IR Remote decoder using EXTI for dashboard navigation.
+* **Wireless Telemetry:** Live telemetry transmitted via HC-05 over USART. By sending a hex command (`0x9A`), the mobile app requests a full buffer dump of all current patient vitals.
 
 ---
 
@@ -181,75 +157,6 @@ The entire codebase is structured in modular Assembly files, separating hardware
 | 📜 [TFT.s](file:///c:/Users/PC/Desktop/Nurse-Robot/TFT.s) | ST7735 1.8" TFT Bit-Banged SPI driver. Handles window rendering and custom font maps. | Bit-Banged SPI (PA9/PA10, PB12/PB13/PB15) |
 | 📜 [ultrasonic.s](file:///c:/Users/PC/Desktop/Nurse-Robot/ultrasonic.s) | HC-SR04 distance measurement. Generates trigger pulse and measures echo length. | GPIOB Pin 10 (Trigger), Pin 2 (Echo) |
 | 📜 [velostat.s](file:///c:/Users/PC/Desktop/Nurse-Robot/velostat.s) | ADC1 configuration for channel 0 to sample Velostat analog voltages. | ADC1 on PA0 |
-
----
-
-## 🛠️ Bare-Metal Assembly Register Showcases
-
-Here is a look at the register-level assembly configuration in this project:
-
-### 1. PWM 50Hz Configuration for Servos (`arm.s`)
-This snippet configures TIM3 registers to output PWM on 4 channels for standard servo motors:
-```assembly
-    ; Enable Clock for TIM3 (APB1 Bus, bit 1)
-    LDR R0, =RCC_BASE
-    LDR R1, [R0, #RCC_APB1ENR]
-    ORR R1, R1, #0x02          
-    STR R1, [R0, #RCC_APB1ENR]
-
-    ; Setup TIM3 for 50Hz PWM (16MHz Clock / 16 = 1MHz -> 1 tick = 1us)
-    LDR R0, =TIM3_BASE
-    LDR R1, =15                ; Prescaler = 15
-    STR R1, [R0, #TIM_PSC]
-    LDR R1, =19999             ; ARR = 20000 ticks (20ms period)
-    STR R1, [R0, #TIM_ARR]
-    
-    ; Configure Channels 1-4 for PWM Mode 1
-    LDR R1, =0x6868           
-    STR R1, [R0, #TIM_CCMR1]   ; CH1 and CH2
-    LDR R1, =0x6868            
-    STR R1, [R0, #TIM_CCMR2]   ; CH3 and CH4
-    
-    ; Enable outputs for all 4 channels
-    LDR R1, =0x1111            
-    STR R1, [R0, #TIM_CCER]
-```
-
-### 2. ADC1 Setup for Velostat Pressure Sensor (`velostat.s`)
-Configuring the ADC to read the analog signal from the Velostat piezoresistive film on PA0:
-```assembly
-    ; Configure PA0 as Analog Mode (11 in MODER)
-    LDR R0, =GPIOA_MODER
-    LDR R1, [R0]
-    ORR R1, R1, #0x03        ; Set bits 0 and 1
-    STR R1, [R0]
-
-    ; Configure ADC1 regular sequence to read channel 0 first
-    LDR R0, =ADC1_SQR3
-    LDR R1, [R0]
-    BIC R1, R1, #0x1F        ; Clear SQ1 bits to select Channel 0
-    STR R1, [R0]
-
-    ; Power on the ADC
-    LDR R0, =ADC1_CR2
-    LDR R1, [R0]
-    ORR R1, R1, #0x01        ; Set ADON bit
-    STR R1, [R0]
-```
-
----
-
-## 📱 Wireless Telemetry & App Integration
-
-The robot communicates with remote nursing stations.
-
-<div align="center">
-  <img src="Images/Bluetooth%20App.jpeg" alt="Bluetooth App Interface" width="250"/>
-  <p><i>Live Mobile Telemetry App developed specifically for this project.</i></p>
-</div>
-
-* **Local Control:** IR Remote decoder using EXTI for dashboard navigation.
-* **Wireless Telemetry:** Live telemetry transmitted via HC-05 over USART. By sending a hex command (`0x9A`), the mobile app requests a full buffer dump of all current patient vitals.
 
 ---
 
