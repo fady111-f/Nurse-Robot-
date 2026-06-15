@@ -1,11 +1,20 @@
-# 🏥 Smart Nurse Robot (Bare-Metal ARM Assembly)
+<div align="center">
+  <img src="Images/Robot.jpeg" alt="Smart Nurse Robot" width="400"/>
+  
+  # 🏥 Smart Nurse Robot
+  **Advanced Bare-Metal ARM Assembly Project**
+  
+  ![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen?style=for-the-badge)
+  ![Platform](https://img.shields.io/badge/Platform-STM32F4xx-blue?style=for-the-badge)
+  ![Language](https://img.shields.io/badge/Language-ARM_Assembly-orange?style=for-the-badge)
+  ![Architecture](https://img.shields.io/badge/Architecture-Bare_Metal-red?style=for-the-badge)
+</div>
 
-![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen)
-![Platform](https://img.shields.io/badge/Platform-STM32F4xx-blue)
-![Language](https://img.shields.io/badge/Language-ARM_Assembly-orange)
-![Architecture](https://img.shields.io/badge/Architecture-Bare_Metal-red)
+<br/>
 
 A comprehensive, fully autonomous medical assistant robot designed to navigate hospital corridors, monitor patient vital signs, and deliver medical supplies. This project is built **entirely from scratch using Bare-Metal ARM Assembly** (No HAL, No external C libraries), demonstrating advanced register-level manipulation of the STM32 microcontroller.
+
+---
 
 ## ✨ Key Innovations & Features
 
@@ -14,11 +23,31 @@ A comprehensive, fully autonomous medical assistant robot designed to navigate h
 * **🤖 Autonomous Hospital Navigation:** Features a "Robot Mode" that uses HC-SR04 ultrasonic sensors for corridor navigation. The robot autonomously halts at specific room distances and triggers a synchronized robotic arm sequence (via multi-channel PWM) to deliver items.
 * **🩸 Real-Time Vitals DSP:** Interfaces with the MAX30102 via custom I2C drivers. Includes an assembly-level Digital Signal Processing (DSP) algorithm to parse raw Red/IR FIFO buffers into accurate Heart Rate (BPM) and Blood Oxygen (SpO2) values.
 * **🪪 Patient Identification System:** Uses an RC522 RFID reader over SPI to authenticate patients. Scanning a tag dynamically loads the patient's local medical profile (Name, Age, Condition) onto the dashboard.
-* **📱 Dual Telemetry & Control:** * **Local Control:** IR Remote decoder using EXTI for dashboard navigation.
-    * **Wireless Telemetry:** HC-05 Bluetooth module over USART transmits live patient vitals and drop rates to remote nursing stations.
+* **📱 Wireless Telemetry & Control:** 
+  * **Local Control:** IR Remote decoder using EXTI for dashboard navigation.
+  * **Bluetooth App:** Live telemetry transmitted via HC-05 over USART to remote nursing stations.
+
+<br/>
+
+<div align="center">
+  <img src="Images/Bluetooth%20App.jpeg" alt="Bluetooth App Interface" width="250"/>
+  <p><i>Live Mobile Telemetry App</i></p>
+</div>
+
+<br/>
+
 * **🖥️ Custom TFT Smart Dashboard:** An entirely custom SPI display driver featuring a multi-state UI menu system, dynamic history rendering, and real-time vital sign tracking.
 
+---
+
 ## 🧰 Hardware Architecture
+
+<div align="center">
+  <img src="Images/Back%20view.jpeg" alt="Robot Back View" width="400"/>
+  <p><i>Internal Hardware & Wiring</i></p>
+</div>
+
+<br/>
 
 The system orchestrates a wide array of peripherals through direct memory-mapped register configuration:
 
@@ -35,14 +64,18 @@ The system orchestrates a wide array of peripherals through direct memory-mapped
 | **HC-05 Bluetooth**| UART | USART1 | Wireless Data Transmission |
 | **Robotic Arm** | PWM | TIM2, TIM3, TIM5 | Servo Control for Delivery Sequence |
 
+---
+
 ## 🧬 Software Architecture (Bare-Metal Assembly)
 
-This project strictly avoids abstraction layers (like STM32 HAL or CMSIS C-headers). All control logic is implemented in ARM Thumb-2 Assembly:
+This project strictly avoids abstraction layers (like STM32 HAL or CMSIS C-headers). All control logic is implemented in **ARM Thumb-2 Assembly**:
 
-1.  **State Machine:** The UI operates on a non-blocking state machine (`STATE_MAIN_MENU`, `STATE_SUISEI_MENU`, `STATE_WA_MENU`, etc.) managing screen renders and history buffers.
-2.  **Interrupt Service Routines (ISRs):** Uses EXTI for the IR remote to ensure inputs are captured instantly without blocking the DSP calculations.
-3.  **Timing & Delays:** Employs nested hardware timers (TIM4, TIM5) and SysTick for microsecond-accurate delays required by the 1-Wire protocol and HC-SR04 echoes.
-4.  **I2C & SPI Drivers:** Custom-written synchronous transaction sequences managing TXE/RXNE flags directly in the `I2C_SR1` and SPI registers.
+1. **State Machine:** The UI operates on a non-blocking state machine (`STATE_MAIN_MENU`, `STATE_SUISEI_MENU`, `STATE_WA_MENU`, etc.) managing screen renders and history buffers.
+2. **Interrupt Service Routines (ISRs):** Uses EXTI for the IR remote to ensure inputs are captured instantly without blocking the DSP calculations.
+3. **Timing & Delays:** Employs nested hardware timers (TIM4, TIM5) and SysTick for microsecond-accurate delays required by the 1-Wire protocol and HC-SR04 echoes.
+4. **I2C & SPI Drivers:** Custom-written synchronous transaction sequences managing TXE/RXNE flags directly in the `I2C_SR1` and SPI registers.
+
+---
 
 ## 🚀 Getting Started
 
@@ -52,11 +85,13 @@ This project strictly avoids abstraction layers (like STM32 HAL or CMSIS C-heade
 * **Components:** List of sensors mentioned in the hardware architecture table.
 
 ### Build & Flash
-1.  Clone this repository to your local machine.
-2.  Open the project file (`.uvprojx`) in Keil uVision.
-3.  Verify the Target Options (ensure the correct STM32 MCU is selected).
-4.  Build the target (`F7`). Ensure there are 0 Errors.
-5.  Connect the ST-Link and click **Download** (`F8`) to flash the firmware to the MCU.
+1. Clone this repository to your local machine.
+2. Open the project file (`.uvprojx`) in Keil uVision.
+3. Verify the Target Options (ensure the correct STM32 MCU is selected).
+4. Build the target (`F7`). Ensure there are 0 Errors.
+5. Connect the ST-Link and click **Download** (`F8`) to flash the firmware to the MCU.
+
+---
 
 ## 🕹️ Operating Guide
 
@@ -74,9 +109,10 @@ This project strictly avoids abstraction layers (like STM32 HAL or CMSIS C-heade
 * The robot will automatically drive forward, utilizing the ultrasonic sensor to scan the corridor.
 * **Logic Triggers:**
     * `Distance > 170cm`: Move Forward.
-    * `Distance 85-100cm` OR `155-170cm`: Room Detected. Engage Brakes -> Execute Robotic Arm Delivery Sequence -> Resume.
+    * `Distance 85-100cm` OR `155-170cm`: Room Detected. Engage Brakes ➔ Execute Robotic Arm Delivery Sequence ➔ Resume.
     * `Distance < 30cm`: Emergency Brake.
 
+---
 
 ## 📌 Workload Distribution
 
@@ -85,16 +121,15 @@ This project strictly avoids abstraction layers (like STM32 HAL or CMSIS C-heade
 > The following distribution represents the primary contributions of each team member.
 
 ### 🛠️ Mechanical Design & Structure
-- **Fady Fawzy , Ayman Alaa** — Design and implementation of the physical robot structure
+- **Fady Fawzy, Ayman Alaa** — Design and implementation of the physical robot structure
 
 ### 💻 Software & System Integration
-- **Omar Youssef & Fady Ashraf** — Main loop , code integration and Sensor History
+- **Omar Youssef & Fady Ashraf** — Main loop, code integration, and Sensor History
 - **Fady Fawzy, Omar Youssef & Fady Ashraf** — Screen and menu system
-  
 
 ### 🌡️ Sensors & Hardware Modules
 - **Fady Ashraf** — Temperature sensor  
-- **Kirellous Kamel , Kirellous Sameh , Ayman Alaa , Jody Ali , Mohammed Ahmed** — MAX module  
+- **Kirellous Kamel, Kirellous Sameh, Ayman Alaa, Jody Ali, Mohammed Ahmed** — MAX module  
 - **Kirellous Kamel & Jody Ali** — Velostat  
 - **Omar Youssef** — IR remote  
 - **Kirellous Kamel & Ayman Alaa** — Bluetooth module  
@@ -109,13 +144,12 @@ This project strictly avoids abstraction layers (like STM32 HAL or CMSIS C-heade
 ### 📱 Application Development
 - **Fady Fawzy & Jody Ali** — Mobile application
 
-
-
-  
 ---
-## 👨‍💻 Developed by: MED-E  
-*Computer Engineering | Cairo University*  
-*Microprocessors & Embedded Systems Project*
+
+<div align="center">
+  <h2>👨‍💻 Developed by: MED-E</h2>
+  <p><i>Computer Engineering | Cairo University<br/>Microprocessors & Embedded Systems Project</i></p>
+</div>
 
 ### 📧 Team Contacts
 - fady.fawzy2006@gmail.com

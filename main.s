@@ -252,6 +252,7 @@ dummy_gluc    DCD 95
 
 
 
+; Sets the active drawing window on the TFT display (from X1,Y1 to X2,Y2)
 TFT_SetWindow FUNCTION
     PUSH {R4-R7, LR}
     MOV R4, R0 
@@ -283,6 +284,7 @@ TFT_SetWindow FUNCTION
     POP {R4-R7, PC}
     ENDFUNC
 
+; Draws a Horizontal line of a specific color and length
 TFT_DrawHLine FUNCTION
     PUSH {R4-R6, LR}
     MOV R4, R2      
@@ -302,6 +304,7 @@ hl_end
     POP {R4-R6, PC}
     ENDFUNC
 
+; Draws a Vertical line of a specific color and length
 TFT_DrawVLine FUNCTION
     PUSH {R4-R6, LR}
     MOV R4, R2      
@@ -322,6 +325,7 @@ vl_end
     POP {R4-R6, PC}
     ENDFUNC
 
+; Draws an empty Rectangle by drawing 4 intersecting lines
 TFT_DrawRect FUNCTION
     PUSH {R4-R10, LR}
     MOV R4, R0 
@@ -354,6 +358,7 @@ TFT_DrawRect FUNCTION
     POP {R4-R10, PC}
     ENDFUNC
 
+; Draws a null-terminated string of characters on the TFT display
 TFT_DrawString FUNCTION
     PUSH {R4-R7, LR}
     MOV R4, R0 
@@ -375,6 +380,7 @@ ds_end
     POP {R4-R7, PC}
     ENDFUNC
 	
+; Converts an integer into its string equivalent and draws it on the TFT
 TFT_DrawNumber FUNCTION
     PUSH {R4-R8, LR}    
     MOV R4, R0          
@@ -480,6 +486,7 @@ bt_9
 END_BT_CONVERT
 	POP{PC}
 
+; Maps the raw NEC IR protocol command byte into a 0-9 numerical value
 Convert_IR_To_Digit FUNCTION
     
     MOV R7, #0xFF
@@ -531,6 +538,7 @@ end_convert
     BX LR
     ENDFUNC
 
+; Highlights the currently selected menu option by drawing a red rectangle around it
 UpdateMenuHighlight FUNCTION
     PUSH {R4-R6, LR}
     MOV R4, R0        
@@ -565,6 +573,7 @@ UpdateMenuHighlight FUNCTION
     POP {R4-R6, PC}
     ENDFUNC
 
+; Renders the main dashboard menu interface on the TFT display
 DrawMainMenu FUNCTION
     PUSH {R4-R6, LR}
     MOV R4, R0          
@@ -632,8 +641,11 @@ DrawMainMenu FUNCTION
 
 
 
+; The Main Program Entry Point
+; Configures core timers, initializes all peripherals, and enters the main operating loop
 __main FUNCTION
     
+    ; Setup system clocks for timers and GPIO
     LDR R0, =RCC_AHB1ENR
     LDR R1, [R0]
     ORR R1, R1, #0x01       
@@ -1121,6 +1133,7 @@ main_screen_render
     B main_loop
 	LTORG
 
+; Sub-menu to display Room Temperature history
 draw_suisei_menu
 
     BL DS18B20_UpdateTemp
@@ -1201,6 +1214,7 @@ end_suisei_draw
     B main_loop
 	LTORG
 
+; Sub-menu to display Heart Rate (BPM) history
 draw_wa_menu
     
     LDR R0, =bpm_past4
@@ -1351,6 +1365,7 @@ wa_draw
 end_wa_menu
     B main_loop
 
+; Sub-menu to display Blood Oxygen (SpO2) history
 draw_kyo_menu
 
     LDR  R0, =spo2_idx
@@ -1522,6 +1537,7 @@ end_kyo_menu
 	LTORG
 
 
+; Sub-menu to display MAX30102 Internal Temperature history
 draw_mo_menu
 
     LDR R0, =COLOR_BLACK
@@ -1596,6 +1612,7 @@ end_mo_draw
 
 
 
+; Sub-menu to display Pressure (Velostat) history
 draw_kawaii_menu
 
     BL read_velostat    
@@ -1746,6 +1763,7 @@ end_kawaii_menu
     B main_loop
 	LTORG	
 
+; Sub-menu to display IV Drop Rate monitor and alarm
 draw_hoshiyome_menu
 
     LDR R0, =COLOR_BLACK
@@ -1779,21 +1797,21 @@ wait_3_digits
     LDR R0, =ir_flag
     LDRB R1, [R0]
     CMP R1, #0
-    BNE IR_recieved
+    BNE IR_received
 	
 wait_3_digits_BT
     BL BT_Get_Data
     CMP R0, #0
     BEQ wait_3_digits
 
-BT_recieved
+BT_received
 
 	BL Convert_IR_To_Digit_BT
     CMP R7, #0xFF
     BEQ wait_3_digits   
 	BL continue_calc
 	
-IR_recieved
+IR_received
 
     MOV R1, #0
     STRB R1, [R0]
