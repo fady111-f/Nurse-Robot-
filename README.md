@@ -17,16 +17,16 @@
 
 ---
 
-## 📌 STM32 Pinout & Peripheral Mapping
+## 📌 STM32 Pinout & Trace Routing Map
 
-Below is the visual map of the STM32 microcontroller, showing exactly which pins (البِنّات) are mapped to which sensors and actuators in the system:
+This schematic illustrates the physical wiring traces mapping the STM32 microcontroller to all peripheral sensors, actuators, and communication modules in the system:
 
 ```mermaid
 graph LR
     %% Central MCU
-    MCU["⚡ STM32F4xx MCU ⚡"]:::mcuStyle
+    MCU["⚡ STM32F4xx MCU ⚡<br/>(Bare-Metal Core)"]:::mcuStyle
 
-    %% Port A Pins Subgraph (Left)
+    %% Port A Pins Subgraph (Left Side)
     subgraph PortA ["PORT A Pins"]
         PA0["PA0 ➔ 🧠 Velostat Pressure (ADC1)"]:::paStyle
         PA6["PA6 ➔ 🦾 Servo 1 Base (TIM3 PWM)"]:::paStyle
@@ -38,11 +38,11 @@ graph LR
         PA12["PA12 ➔ 💧 IR LED Power (IV Emitter)"]:::paStyle
     end
 
-    %% Port B Pins Subgraph (Right)
+    %% Port B Pins Subgraph (Right Side)
     subgraph PortB ["PORT B Pins"]
         PB0["PB0 ➔ 🦾 Servo 3 Elbow (TIM3 PWM)"]:::pbStyle
         PB1["PB1 ➔ 🦾 Servo 4 Gripper (TIM3 PWM)"]:::pbStyle
-        PB2["PB2 ➔ 🦇 HC-SR04 Echo (Input)"]:::pbStyle
+        PB2["PB2 ➔ 🦇 Echo Input (HC-SR04)"]:::pbStyle
         PB3["PB3 ➔ 💧 IR Receiver (IV Sensor)"]:::pbStyle
         PB4["PB4 ➔ 🚨 Buzzer/LED (IV Indicator)"]:::pbStyle
         PB5["PB5 ➔ 🎮 VS1838B IR Remote (EXTI5)"]:::pbStyle
@@ -50,46 +50,70 @@ graph LR
         PB7["PB7 ➔ 📱 HC-05 RX (USART1 RX)"]:::pbStyle
         PB8["PB8 ➔ 🩸 MAX30102 SCL (I2C1 SCL)"]:::pbStyle
         PB9["PB9 ➔ 🩸 MAX30102 SDA (I2C1 SDA)"]:::pbStyle
-        PB10["PB10 ➔ 🦇 HC-SR04 Trigger (Output)"]:::pbStyle
+        PB10["PB10 ➔ 🦇 Trigger Output (HC-SR04)"]:::pbStyle
         PB12["PB12 ➔ 🖥️ TFT CS (SPI CS)"]:::pbStyle
         PB13["PB13 ➔ 🖥️ TFT RST (GPIO Out)"]:::pbStyle
         PB14["PB14 ➔ 🪪 RFID MISO (SPI MISO)"]:::pbStyle
         PB15["PB15 ➔ 🖥️ TFT D/C (GPIO Out)"]:::pbStyle
     end
 
-    %% Connections to MCU
-    PA0 --> MCU
-    PA6 --> MCU
-    PA7 --> MCU
-    PA8 --> MCU
-    PA9 --> MCU
-    PA10 --> MCU
-    PA11 --> MCU
-    PA12 --> MCU
-
-    MCU --> PB0
-    MCU --> PB1
-    MCU --> PB2
-    MCU --> PB3
-    MCU --> PB4
-    MCU --> PB5
-    MCU --> PB6
-    MCU --> PB7
-    MCU --> PB8
-    MCU --> PB9
-    MCU --> PB10
-    MCU --> PB12
-    MCU --> PB13
-    MCU --> PB14
-    MCU --> PB15
+    %% Wiring traces
+    PA0 --- MCU
+    PA6 --- MCU
+    PA7 --- MCU
+    PA8 --- MCU
+    PA9 --- MCU
+    PA10 --- MCU
+    PA11 --- MCU
+    PA12 --- MCU
+    MCU --- PB0
+    MCU --- PB1
+    MCU --- PB2
+    MCU --- PB3
+    MCU --- PB4
+    MCU --- PB5
+    MCU --- PB6
+    MCU --- PB7
+    MCU --- PB8
+    MCU --- PB9
+    MCU --- PB10
+    MCU --- PB12
+    MCU --- PB13
+    MCU --- PB14
+    MCU --- PB15
 
     %% Styling Definitions
-    classDef mcuStyle fill:#1e1e38,stroke:#ffd700,stroke-width:3px,color:#ffffff,font-weight:bold,font-size:15px;
-    classDef paStyle fill:#fff3e0,stroke:#fb8c00,stroke-width:1.5px,color:#e65100;
-    classDef pbStyle fill:#e0f2f1,stroke:#009688,stroke-width:1.5px,color:#004d40;
+    classDef mcuStyle fill:#0d1b2a,stroke:#e0e1dd,stroke-width:3px,color:#e0e1dd,font-weight:bold,font-size:16px,rx:12px,ry:12px;
+    classDef paStyle fill:#fff8e1,stroke:#ffe082,stroke-width:1.5px,color:#5d4037,rx:6px,ry:6px;
+    classDef pbStyle fill:#e0f7fa,stroke:#80deea,stroke-width:1.5px,color:#006064,rx:6px,ry:6px;
 
-    style PortA fill:#fff8e1,stroke:#ffe082,stroke-width:2px;
-    style PortB fill:#e0f7fa,stroke:#80deea,stroke-width:2px;
+    style PortA fill:#fffde7,stroke:#fff59d,stroke-width:2px,rx:8px,ry:8px;
+    style PortB fill:#e0f7fa,stroke:#80deea,stroke-width:2px,rx:8px,ry:8px;
+
+    %% Color-Coded Trace Routing Links (Link Styles)
+    linkStyle 0 stroke:#FFB300,stroke-width:2.5px; %% PA0 (Analog ADC)
+    linkStyle 1 stroke:#BA68C8,stroke-width:2.5px; %% PA6 (PWM Servos)
+    linkStyle 2 stroke:#BA68C8,stroke-width:2.5px; %% PA7 (PWM Servos)
+    linkStyle 3 stroke:#4CAF50,stroke-width:2.5px; %% PA8 (SPI Bit-Bang)
+    linkStyle 4 stroke:#4CAF50,stroke-width:2.5px; %% PA9 (SPI Bit-Bang)
+    linkStyle 5 stroke:#4CAF50,stroke-width:2.5px; %% PA10 (SPI Bit-Bang)
+    linkStyle 6 stroke:#8D6E63,stroke-width:2.5px; %% PA11 (1-Wire Temp)
+    linkStyle 7 stroke:#F06292,stroke-width:2.5px; %% PA12 (IV IR Power)
+    linkStyle 8 stroke:#BA68C8,stroke-width:2.5px; %% PB0 (PWM Servos)
+    linkStyle 9 stroke:#BA68C8,stroke-width:2.5px; %% PB1 (PWM Servos)
+    linkStyle 10 stroke:#29B6F6,stroke-width:2.5px; %% PB2 (HC-SR04 Echo)
+    linkStyle 11 stroke:#00ACC1,stroke-width:2.5px; %% PB3 (IV IR Recv)
+    linkStyle 12 stroke:#00ACC1,stroke-width:2.5px; %% PB4 (IV Buzzer)
+    linkStyle 13 stroke:#EF5350,stroke-width:2.5px; %% PB5 (IR Remote EXTI)
+    linkStyle 14 stroke:#5C6BC0,stroke-width:2.5px; %% PB6 (USART Bluetooth)
+    linkStyle 15 stroke:#5C6BC0,stroke-width:2.5px; %% PB7 (USART Bluetooth)
+    linkStyle 16 stroke:#FFA726,stroke-width:2.5px; %% PB8 (I2C MAX30102)
+    linkStyle 17 stroke:#FFA726,stroke-width:2.5px; %% PB9 (I2C MAX30102)
+    linkStyle 18 stroke:#29B6F6,stroke-width:2.5px; %% PB10 (HC-SR04 Trig)
+    linkStyle 19 stroke:#4CAF50,stroke-width:2.5px; %% PB12 (SPI Bit-Bang)
+    linkStyle 20 stroke:#4CAF50,stroke-width:2.5px; %% PB13 (SPI Bit-Bang)
+    linkStyle 21 stroke:#4CAF50,stroke-width:2.5px; %% PB14 (SPI Bit-Bang)
+    linkStyle 22 stroke:#4CAF50,stroke-width:2.5px; %% PB15 (SPI Bit-Bang)
 ```
 
 ---
@@ -239,8 +263,8 @@ The entire codebase is structured in modular Assembly files, separating hardware
 
 ## 🚀 Getting Started
 
-<details>
-<summary><b>Click to expand Installation & Build Instructions</b></summary>
+> [!NOTE]
+> Ensure you have an active ST-Link V2 programmer and 10K pull-up resistors for the I2C SCL/SDA lines.
 
 ### Prerequisites
 * **IDE:** Keil uVision 5 (configured for ARM Assembly).
@@ -253,7 +277,6 @@ The entire codebase is structured in modular Assembly files, separating hardware
 3. Verify the Target Options (ensure the correct STM32 MCU is selected).
 4. Build the target (`F7`). Ensure there are **0 Errors**.
 5. Connect the ST-Link and click **Download** (`F8`) to flash the firmware to the MCU.
-</details>
 
 ---
 
