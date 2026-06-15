@@ -17,41 +17,47 @@
 
 ---
 
-## 🏗️ System Architecture
+## 🏗️ System Architecture & Connectivity
 
-To understand the complexity of the project, here is a high-level block diagram of how the STM32 interacts with all peripherals entirely via Bare-Metal Assembly:
+The STM32 acts as the central brain, orchestrating multiple sensors, communication interfaces, and actuator modules over bare-metal assembly drivers:
 
 ```mermaid
-graph TD
-    MCU[<b>STM32F4xx MCU</b><br/>Bare-Metal Assembly]
+graph TB
+    classDef mcu fill:#1e1e38,stroke:#ffd700,stroke-width:2px,color:#fff,font-weight:bold;
+    classDef sensor fill:#e3f2fd,stroke:#1e88e5,stroke-width:1.5px,color:#0d47a1;
+    classDef actuator fill:#e8f5e9,stroke:#43a047,stroke-width:1.5px,color:#1b5e20;
     
-    subgraph Sensors & Inputs
-        MAX[MAX30102<br/>Heart Rate & SpO2]
-        VELO[Velostat<br/>Pressure Sensor]
-        DS18[DS18B20<br/>Temperature]
-        IR_DROP[Optical Gate<br/>IV Drop Rate]
-        HCSR[HC-SR04<br/>Ultrasonic]
-        RFID[MFRC522 RFID<br/>Patient ID]
-        IR_REM[VS1838B IR<br/>Remote Control]
+    MCU["⚡ STM32F4xx MCU<br/>(Bare-Metal Assembly)"]:::mcu
+    
+    subgraph InputSensors["📥 Sensors & Inputs"]
+        MAX["🩸 MAX30102<br/>Heart Rate & SpO2"]:::sensor
+        VELO["🧠 Velostat<br/>Pressure Sensor"]:::sensor
+        DS18["🌡️ DS18B20<br/>Room Temp"]:::sensor
+        IR_DROP["💧 Optical Gate<br/>IV Drop Rate"]:::sensor
+        HCSR["🦇 HC-SR04<br/>Ultrasonic"]:::sensor
+        RFID["🪪 MFRC522<br/>RFID Patient ID"]:::sensor
+        IR_REM["🎮 VS1838B IR<br/>Remote Control"]:::sensor
     end
+    style InputSensors fill:#f4f7fb,stroke:#90caf9,stroke-width:2px,stroke-dasharray: 5 5;
 
-    subgraph Actuators & Outputs
-        TFT[ST7735 TFT<br/>Custom Dashboard]
-        ARM[SG90 Servos<br/>Robotic Arm]
-        BT[HC-05 Bluetooth<br/>Telemetry App]
+    subgraph OutputActuators["📤 Actuators & Outputs"]
+        TFT["🖥️ ST7735 TFT<br/>Smart Dashboard"]:::actuator
+        ARM["🤖 SG90 Servos<br/>Robotic Arm"]:::actuator
+        BT["📱 HC-05 BT<br/>Telemetry App"]:::actuator
     end
+    style OutputActuators fill:#f1f8e9,stroke:#a5d6a7,stroke-width:2px,stroke-dasharray: 5 5;
 
-    MCU -- I2C1 --> MAX
-    MCU -- ADC1 --> VELO
-    MCU -- 1-Wire / GPIO --> DS18
-    MCU -- SysTick --> IR_DROP
-    MCU -- TIM3 --> HCSR
-    MCU -- SPI --> RFID
-    MCU -- EXTI / TIM4 --> IR_REM
+    MCU -- "I2C (PB8/PB9)" --> MAX
+    MCU -- "ADC1 (PA0)" --> VELO
+    MCU -- "1-Wire (PA11)" --> DS18
+    MCU -- "GPIO (PB3)" --> IR_DROP
+    MCU -- "Input Capture (PB2)" --> HCSR
+    MCU -- "SPI Bit-Bang (PA8-10, PB14)" --> RFID
+    MCU -- "EXTI5 (PB5)" --> IR_REM
 
-    MCU -- SPI (Bit-Bang) --> TFT
-    MCU -- PWM (TIM3) --> ARM
-    MCU -- USART1 --> BT
+    MCU -- "SPI Bit-Bang (PA9-10, PB12-15)" --> TFT
+    MCU -- "PWM CH1-4 (TIM3)" --> ARM
+    MCU -- "USART1 (PB6/PB7)" --> BT
 ```
 
 ---
@@ -80,36 +86,37 @@ The system orchestrates a wide array of specialized electronic modules. Below is
 The firmware coordinates dashboard interactions, telemetry polling, and navigation transitions. The following flowchart explains this execution logic:
 
 ```mermaid
-stateDiagram-v2
-    [*] --> Init : System Reset
-    Init --> MainMenu : Peripherals Configured
+graph TD
+    classDef init fill:#eceff1,stroke:#607d8b,stroke-width:2px,color:#263238;
+    classDef menu fill:#e1f5fe,stroke:#0288d1,stroke-width:2px,color:#01579b;
+    classDef sub fill:#f3e5f5,stroke:#8e24aa,stroke-width:2px,color:#4a148c;
+    classDef robot fill:#fffde7,stroke:#fbc02d,stroke-width:2px,color:#f57f17;
+    classDef err fill:#ffebee,stroke:#e53935,stroke-width:2px,color:#b71c1c,font-weight:bold;
     
-    state MainMenu {
-        [*] --> SelectMenu
-        SelectMenu --> RenderScreen : IR Navigation Command
-        RenderScreen --> UpdateVitals : Periodic Tick
-    }
-
-    MainMenu --> SubMenu : OK Button Pressed
-    state SubMenu {
-        [*] --> ShowHistory : Display logs
-        ShowHistory --> SelectMenu : Back / Left Button
-    }
-
-    MainMenu --> RobotMode : Press Remote Button [1]
-    state RobotMode {
-        [*] --> MoveForward
-        MoveForward --> ScanCorridor : Periodic Ping
-        ScanCorridor --> EmergencyStop : Obstacle < 30cm
-        ScanCorridor --> DeliverSupply : Room Detected (85-100cm / 155-170cm)
-        DeliverSupply --> EngageBrakes : Stop Motors
-        EngageBrakes --> ArmSequence : Move SG90 Servos (Steps 1-8)
-        ArmSequence --> MoveForward : Sequence Complete
-        
-        MoveForward --> MainMenu : Remote Button Press Interrupt
-    }
-
-    EmergencyStop --> MainMenu : Exit on Safety Stop
+    START([⚡ Power On]) --> INIT["⚙️ Hardware Initialization<br/>(GPIO, Timers, I2C, SPI)"]:::init
+    INIT --> MENU["🖥️ Main Dashboard<br/>(Stationary Monitor Mode)"]:::menu
+    
+    MENU --> |"Remote UP/DOWN"| NAV["🔄 Navigate Menu<br/>(Select Metric)"]:::menu
+    NAV --> MENU
+    
+    MENU --> |"Press OK"| SUB["📂 Sub-Menu Screen<br/>(Show History Logs)"]:::sub
+    SUB --> |"Press LEFT (Back)"| MENU
+    
+    MENU --> |"Press Remote [1]"| RM_FORWARD["🤖 Robot Mode<br/>Move Forward"]:::robot
+    
+    subgraph AutoNavLoop["Corridor Navigation Loop"]
+        RM_FORWARD --> SCAN["🔍 Scan Distance<br/>(HC-SR04 Echo)"]:::robot
+        SCAN --> |"Distance 85-100cm / 155-170cm"| DETECT["🏥 Room Detected<br/>Brake Motors"]:::robot
+        DETECT --> ARM_SEQ["🦾 SG90 Arm Sequence<br/>(Deliver Supply)"]:::robot
+        ARM_SEQ --> |Resume| RM_FORWARD
+    end
+    style AutoNavLoop fill:#fffde7,stroke:#ffd54f,stroke-width:1.5px,stroke-dasharray: 4 4;
+    
+    SCAN --> |"Obstacle < 30cm"| STOP["🚨 Emergency Brake<br/>Halts Robot"]:::err
+    RM_FORWARD --> |"Any Key Interrupt"| EXIT_RM["⏹️ Stop / Exit Mode"]:::init
+    
+    STOP --> MENU
+    EXIT_RM --> MENU
 ```
 
 ---
