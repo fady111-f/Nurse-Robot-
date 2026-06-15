@@ -29,15 +29,15 @@ graph TD
         MAX[MAX30102<br/>Heart Rate & SpO2]
         VELO[Velostat<br/>Pressure Sensor]
         DS18[DS18B20<br/>Temperature]
-        IR_DROP[IR Sensor<br/>IV Drop Rate]
+        IR_DROP[Optical Gate<br/>IV Drop Rate]
         HCSR[HC-SR04<br/>Ultrasonic]
-        RFID[RC522 RFID<br/>Patient ID]
-        IR_REM[IR Receiver<br/>Remote Control]
+        RFID[MFRC522 RFID<br/>Patient ID]
+        IR_REM[VS1838B IR<br/>Remote Control]
     end
 
     subgraph Actuators & Outputs
-        TFT[TFT Display<br/>Custom Dashboard]
-        ARM[Robotic Arm<br/>4x Servos]
+        TFT[ST7735 TFT<br/>Custom Dashboard]
+        ARM[SG90 Servos<br/>Robotic Arm]
         BT[HC-05 Bluetooth<br/>Telemetry App]
     end
 
@@ -81,46 +81,48 @@ The robot is not just a standalone device; it acts as an IoT node communicating 
 
 ---
 
-## 🧰 Hardware & Internal Wiring
+## 🧰 Hardware Bill of Materials (BOM) & Wiring
 
 <div align="center">
   <img src="Images/Back%20view.jpeg" alt="Robot Back View" width="400"/>
   <p><i>Internal Hardware & Complex Wiring managed by the team.</i></p>
 </div>
 
-| Peripheral / Sensor | Protocol / Interface | STM32 Hardware Block Used | Purpose |
-| :--- | :--- | :--- | :--- |
-| **TFT Display** | SPI (Custom Bit-bang) | GPIO, Timers | UI Dashboard & Menu System |
-| **MAX30102** | I2C | I2C1 | Heart Rate & SpO2 Monitoring |
-| **DS18B20** | 1-Wire | GPIO (Delay-based) | Ambient / Room Temperature |
-| **RC522 RFID** | SPI | SPI / GPIO | Patient Identification |
-| **HC-SR04** | Trigger/Echo | TIM3 (Input Capture) | Obstacle Avoidance |
-| **Velostat** | Analog | ADC1 | Touch Pressure Sensing |
-| **IR Drop Sensor** | Digital Interrupt | SysTick, GPIO | IV Drop Rate Tracking |
-| **IR Receiver** | EXTI | EXTI, TIM4 | Remote Control Decoding |
-| **HC-05 Bluetooth**| UART | USART1 | Wireless Data Transmission |
-| **Robotic Arm** | PWM | TIM2, TIM3, TIM5 | Delivery Sequence |
+The system orchestrates a wide array of specialized electronic modules through direct memory-mapped register configuration. Below is the detailed component breakdown:
+
+| Component Model | Category | Protocol / Interface | STM32 Block | Purpose |
+| :--- | :--- | :--- | :--- | :--- |
+| **ST7735 (1.8")** | TFT Color Display | SPI (Custom Bit-bang) | GPIO, Timers | UI Dashboard & Menu System |
+| **MAX30102** | High-Sensitivity Oximeter | I2C | I2C1 | Heart Rate & SpO2 Monitoring |
+| **DS18B20** | Digital Thermometer | 1-Wire | GPIO (Delay-based) | Ambient / Room Temperature |
+| **MFRC522** | 13.56MHz RFID Reader | SPI | SPI / GPIO | Patient Identification |
+| **HC-SR04** | Ultrasonic Module | Trigger/Echo | TIM3 (Input Capture) | Obstacle Avoidance & Navigation |
+| **Velostat** | Piezoresistive Film | Analog | ADC1 | Nerve/Touch Pressure Sensing |
+| **Custom IR Gate**| Optical Emitter/Detector | Digital Interrupt | SysTick, GPIO | IV Fluid Drop Rate Tracking |
+| **VS1838B** | 38kHz IR Receiver | EXTI | EXTI, TIM4 | NEC Remote Control Decoding |
+| **HC-05**| Bluetooth Transceiver | UART | USART1 | Wireless Data Transmission |
+| **SG90 / MG996R** | Servo Motors (x4) | PWM | TIM2, TIM3, TIM5 | Robotic Arm Delivery Sequence |
 
 ---
 
 ## 📁 Source Code Structure
 
-The entire codebase is structured in modular Assembly files, separating drivers from application logic:
+The entire codebase is structured in modular Assembly files, separating hardware drivers from application logic:
 
 ```text
 📦 Nurse-Robot
  ┣ 📜 main.s         # Main State Machine, UI rendering, & System Init
  ┣ 📜 max.s          # MAX30102 I2C driver & DSP (Heart Rate/SpO2)
- ┣ 📜 RFID.s         # RC522 SPI driver & Patient Authentication
+ ┣ 📜 RFID.s         # MFRC522 SPI driver & Patient Authentication
  ┣ 📜 Robot_mode.s   # Autonomous navigation logic & Obstacle avoidance
  ┣ 📜 arm.s          # Servo & Robotic Arm PWM control sequences
  ┣ 📜 bluetooth.s    # HC-05 USART Telemetry & Data parsing
  ┣ 📜 DROP rate.s    # IV Drop rate calculation via SysTick
- ┣ 📜 IR.s           # IR Remote decoding via EXTI and Timers
+ ┣ 📜 IR.s           # VS1838B IR Remote decoding via EXTI and Timers
  ┣ 📜 temperature.s  # DS18B20 1-Wire protocol implementation
- ┣ 📜 TFT.s          # Custom SPI Display driver & 8x8 Fonts mapping
+ ┣ 📜 TFT.s          # ST7735 SPI Display driver & 8x8 Fonts mapping
  ┣ 📜 ultrasonic.s   # HC-SR04 distance measurement
- ┗ 📜 velostat.s     # ADC configuration for pressure sensing
+ ┗ 📜 velostat.s     # ADC configuration for Velostat pressure sensing
 ```
 
 ---
@@ -157,6 +159,7 @@ wait_rxne_ack
 ### Prerequisites
 * **IDE:** Keil uVision 5 (or any ARM cross-compiler configured for pure assembly).
 * **Hardware:** STM32F4xx series Discovery/Nucleo board, ST-Link V2 Programmer.
+* **Components:** See the Hardware Bill of Materials section.
 
 ### Build & Flash
 1. Clone this repository to your local machine.
@@ -203,21 +206,21 @@ wait_rxne_ack
 - **Fady Fawzy, Omar Youssef & Fady Ashraf** — Screen and menu system
 
 ### 🌡️ Sensors & Hardware Modules
-- **Fady Ashraf** — Temperature sensor  
-- **Kirellous Kamel, Kirellous Sameh, Ayman Alaa, Jody Ali, Mohammed Ahmed** — MAX module  
-- **Kirellous Kamel & Jody Ali** — Velostat  
-- **Omar Youssef** — IR remote  
-- **Kirellous Kamel & Ayman Alaa** — Bluetooth module  
-- **Yousuf Safwat, Eissa Ali & Kirellous Sameh** — RFID system
+- **Fady Ashraf** — Temperature sensor (DS18B20)
+- **Kirellous Kamel, Kirellous Sameh, Ayman Alaa, Jody Ali, Mohammed Ahmed** — MAX30102 Oximeter module  
+- **Kirellous Kamel & Jody Ali** — Velostat Pressure Sensor  
+- **Omar Youssef** — IR Remote & Receiver System
+- **Kirellous Kamel & Ayman Alaa** — Bluetooth (HC-05) module  
+- **Yousuf Safwat, Eissa Ali & Kirellous Sameh** — RFID (MFRC522) System
 
 ### 🤖 Control & Logic
-- **Yousuf Safwat & Mohammad Ahmed** — ARM control  
-- **Kirellous Kamel & Fady Ashraf** — Item distribution logic  
-- **Eissa Hozayen & Yousuf Safwat** — Motion system  
-- **Kirellous Kamel, Fady Ashraf, Omar Youssef & Fady Fawzy** — Drop rate system
+- **Yousuf Safwat & Mohammad Ahmed** — Core ARM logic & Peripheral Control
+- **Kirellous Kamel & Fady Ashraf** — Item distribution / Robotic Arm logic
+- **Eissa Hozayen & Yousuf Safwat** — Base Motion / Robot Movement system
+- **Kirellous Kamel, Fady Ashraf, Omar Youssef & Fady Fawzy** — Custom Drop Rate sensing system
 
 ### 📱 Application Development
-- **Fady Fawzy & Jody Ali** — Mobile application
+- **Fady Fawzy & Jody Ali** — Mobile application (Telemetry Interface)
 
 </details>
 
