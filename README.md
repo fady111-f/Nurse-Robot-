@@ -17,54 +17,86 @@
 
 ---
 
-## 🏗️ System Architecture & Connectivity
+## 📌 STM32 Pinout & Peripheral Mapping
 
-The STM32 acts as the central brain, orchestrating multiple sensors, communication interfaces, and actuator modules over bare-metal assembly drivers:
+Below is the visual map of the STM32 microcontroller, showing exactly which pins (البِنّات) are mapped to which sensors and actuators in the system:
 
 ```mermaid
-graph TB
-    classDef mcu fill:#1e1e38,stroke:#ffd700,stroke-width:2px,color:#fff,font-weight:bold;
-    classDef sensor fill:#e3f2fd,stroke:#1e88e5,stroke-width:1.5px,color:#0d47a1;
-    classDef actuator fill:#e8f5e9,stroke:#43a047,stroke-width:1.5px,color:#1b5e20;
-    
-    MCU["⚡ STM32F4xx MCU<br/>(Bare-Metal Assembly)"]:::mcu
-    
-    subgraph InputSensors["📥 Sensors & Inputs"]
-        MAX["🩸 MAX30102<br/>Heart Rate & SpO2"]:::sensor
-        VELO["🧠 Velostat<br/>Pressure Sensor"]:::sensor
-        DS18["🌡️ DS18B20<br/>Room Temp"]:::sensor
-        IR_DROP["💧 Optical Gate<br/>IV Drop Rate"]:::sensor
-        HCSR["🦇 HC-SR04<br/>Ultrasonic"]:::sensor
-        RFID["🪪 MFRC522<br/>RFID Patient ID"]:::sensor
-        IR_REM["🎮 VS1838B IR<br/>Remote Control"]:::sensor
+graph LR
+    %% Central MCU
+    MCU["⚡ STM32F4xx MCU ⚡"]:::mcuStyle
+
+    %% Port A Pins Subgraph (Left)
+    subgraph PortA ["PORT A Pins"]
+        PA0["PA0 ➔ 🧠 Velostat Pressure (ADC1)"]:::paStyle
+        PA6["PA6 ➔ 🦾 Servo 1 Base (TIM3 PWM)"]:::paStyle
+        PA7["PA7 ➔ 🦾 Servo 2 Shoulder (TIM3 PWM)"]:::paStyle
+        PA8["PA8 ➔ 🪪 RFID CS (SPI CS)"]:::paStyle
+        PA9["PA9 ➔ 🖥️ TFT SCK & 🪪 RFID SCK"]:::paStyle
+        PA10["PA10 ➔ 🖥️ TFT MOSI & 🪪 RFID MOSI"]:::paStyle
+        PA11["PA11 ➔ 🌡️ DS18B20 Temp (1-Wire)"]:::paStyle
+        PA12["PA12 ➔ 💧 IR LED Power (IV Emitter)"]:::paStyle
     end
-    style InputSensors fill:#f4f7fb,stroke:#90caf9,stroke-width:2px,stroke-dasharray: 5 5;
 
-    subgraph OutputActuators["📤 Actuators & Outputs"]
-        TFT["🖥️ ST7735 TFT<br/>Smart Dashboard"]:::actuator
-        ARM["🤖 SG90 Servos<br/>Robotic Arm"]:::actuator
-        BT["📱 HC-05 BT<br/>Telemetry App"]:::actuator
+    %% Port B Pins Subgraph (Right)
+    subgraph PortB ["PORT B Pins"]
+        PB0["PB0 ➔ 🦾 Servo 3 Elbow (TIM3 PWM)"]:::pbStyle
+        PB1["PB1 ➔ 🦾 Servo 4 Gripper (TIM3 PWM)"]:::pbStyle
+        PB2["PB2 ➔ 🦇 HC-SR04 Echo (Input)"]:::pbStyle
+        PB3["PB3 ➔ 💧 IR Receiver (IV Sensor)"]:::pbStyle
+        PB4["PB4 ➔ 🚨 Buzzer/LED (IV Indicator)"]:::pbStyle
+        PB5["PB5 ➔ 🎮 VS1838B IR Remote (EXTI5)"]:::pbStyle
+        PB6["PB6 ➔ 📱 HC-05 TX (USART1 TX)"]:::pbStyle
+        PB7["PB7 ➔ 📱 HC-05 RX (USART1 RX)"]:::pbStyle
+        PB8["PB8 ➔ 🩸 MAX30102 SCL (I2C1 SCL)"]:::pbStyle
+        PB9["PB9 ➔ 🩸 MAX30102 SDA (I2C1 SDA)"]:::pbStyle
+        PB10["PB10 ➔ 🦇 HC-SR04 Trigger (Output)"]:::pbStyle
+        PB12["PB12 ➔ 🖥️ TFT CS (SPI CS)"]:::pbStyle
+        PB13["PB13 ➔ 🖥️ TFT RST (GPIO Out)"]:::pbStyle
+        PB14["PB14 ➔ 🪪 RFID MISO (SPI MISO)"]:::pbStyle
+        PB15["PB15 ➔ 🖥️ TFT D/C (GPIO Out)"]:::pbStyle
     end
-    style OutputActuators fill:#f1f8e9,stroke:#a5d6a7,stroke-width:2px,stroke-dasharray: 5 5;
 
-    MCU -- "I2C (PB8/PB9)" --> MAX
-    MCU -- "ADC1 (PA0)" --> VELO
-    MCU -- "1-Wire (PA11)" --> DS18
-    MCU -- "GPIO (PB3)" --> IR_DROP
-    MCU -- "Input Capture (PB2)" --> HCSR
-    MCU -- "SPI Bit-Bang (PA8-10, PB14)" --> RFID
-    MCU -- "EXTI5 (PB5)" --> IR_REM
+    %% Connections to MCU
+    PA0 --> MCU
+    PA6 --> MCU
+    PA7 --> MCU
+    PA8 --> MCU
+    PA9 --> MCU
+    PA10 --> MCU
+    PA11 --> MCU
+    PA12 --> MCU
 
-    MCU -- "SPI Bit-Bang (PA9-10, PB12-15)" --> TFT
-    MCU -- "PWM CH1-4 (TIM3)" --> ARM
-    MCU -- "USART1 (PB6/PB7)" --> BT
+    MCU --> PB0
+    MCU --> PB1
+    MCU --> PB2
+    MCU --> PB3
+    MCU --> PB4
+    MCU --> PB5
+    MCU --> PB6
+    MCU --> PB7
+    MCU --> PB8
+    MCU --> PB9
+    MCU --> PB10
+    MCU --> PB12
+    MCU --> PB13
+    MCU --> PB14
+    MCU --> PB15
+
+    %% Styling Definitions
+    classDef mcuStyle fill:#1e1e38,stroke:#ffd700,stroke-width:3px,color:#ffffff,font-weight:bold,font-size:15px;
+    classDef paStyle fill:#fff3e0,stroke:#fb8c00,stroke-width:1.5px,color:#e65100;
+    classDef pbStyle fill:#e0f2f1,stroke:#009688,stroke-width:1.5px,color:#004d40;
+
+    style PortA fill:#fff8e1,stroke:#ffe082,stroke-width:2px;
+    style PortB fill:#e0f7fa,stroke:#80deea,stroke-width:2px;
 ```
 
 ---
 
-## 🔌 Hardware Port Map & Wiring
+## 🔌 Hardware Port Map & Wiring Table
 
-The system orchestrates a wide array of specialized electronic modules. Below is the detailed hardware wiring and pinout scheme:
+For a quick reference of connections, here is the full hardware mapping table:
 
 | Peripheral Module | STM32 Pin | Interface / Protocol | Purpose |
 | :--- | :--- | :--- | :--- |
@@ -83,7 +115,7 @@ The system orchestrates a wide array of specialized electronic modules. Below is
 
 ## 🧠 Software Flow & State Machine
 
-The firmware coordinates dashboard interactions, telemetry polling, and navigation transitions. The following flowchart explains this execution logic:
+The firmware coordinates dashboard interactions, telemetry polling, and navigation transitions:
 
 ```mermaid
 graph TD
